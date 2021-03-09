@@ -4,9 +4,6 @@ from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import cv2
 import numpy as np
-from flask import *
-import cv2
-import base64
 
 # Loading the model
 model = load_model('Mask_Detector.model')
@@ -42,29 +39,15 @@ def compute(fm):
 
         return fm
 
+while True:
+    ret, frame = cap.read()
+    frame = compute(frame)
+    cv2.imshow('CAMERA', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-app = Flask(__name__)
-
-
-@app.route('/')
-def hello_world():
-    return render_template('index.html')
-
-
-@app.route('/post', methods=['POST'])
-def upload_image():
-    filestr = request.files["file"].read()
-    npimg = np.fromstring(filestr, numpy.uint8)
-    compute(npimg)
-    _, response_image = cv2.imencode('.jpg', img)
-    jpg_as_text = base64.b64encode(response_image)
-    return {
-        "image": jpg_as_text.decode('utf-8'),
-        "hasMask": False,
-        "confidence": 0.5
-    }
+cap.release()
+cv2.destroyAllWindows()
 
 
-if __name__ == "__main__":
-    print("Hello World")
-    app.run(debug=True)
+
